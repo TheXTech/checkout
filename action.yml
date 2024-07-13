@@ -1,0 +1,41 @@
+name: 'Checkout'
+description: 'Checks out correct branch or pull request merge'
+branding:
+  icon: 'download'
+  color: 'blue'
+runs:
+  using: 'composite'
+  steps:
+    - shell: bash
+      run: |
+        retry() {
+          for i in {1..10}; do
+              if "$@"; then
+                  return 0
+              else
+                  sleep "${i}"
+              fi
+          done
+          "$@"
+        }
+
+        wd=$(pwd)
+
+        git version
+        git config --global --add safe.directory "${wd}"
+
+        git init
+
+        git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+
+        git config --local gc.auto 0
+
+        if [[ "${GITHUB_REF}" == "refs/heads/"* ]]; then
+          branch="${GITHUB_REF#refs/heads/}"
+          remote_ref="refs/remotes/origin/${branch}"
+          retry git fetch --no-tags --prune --no-recurse-submodules --depth=1 origin "+${GITHUB_SHA}:${remote_ref}"
+          retry git checkout --force -B "${branch}" "${remote_ref}"
+        else
+          retry git fetch --no-tags --prune --no-recurse-submodules --depth=1 origin "+${GITHUB_SHA}:${GITHUB_REF}"
+          retry git checkout --force "${GITHUB_REF}"
+        fi
