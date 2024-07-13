@@ -23,6 +23,7 @@ runs:
 
         git version
         git config --global --add safe.directory "${wd}"
+        git config --global advice.detachedHead false
 
         git init -b _initial_branch
 
