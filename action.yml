@@ -24,7 +24,7 @@ runs:
         git version
         git config --global --add safe.directory "${wd}"
 
-        git init
+        git init -b _initial_branch
 
         git remote add origin "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
 
